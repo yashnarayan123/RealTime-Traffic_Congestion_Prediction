@@ -12,7 +12,6 @@ import plotly.express as px
 
 st.set_page_config(
     page_title="Traffic Analytics",
-    page_icon="🚦",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -45,33 +44,33 @@ st.markdown(
     /* ---------- ROOT TOKENS ---------- */
 
     :root {
-        --bg-base:        #06091a;
-        --bg-surface:     #0b1120;
-        --bg-elevated:    #101828;
-        --bg-card:        #0f1724;
-        --border-subtle:  #1a2540;
-        --border-default: #1f2d4a;
-        --border-accent:  #2a3f6e;
-        --accent:         #4f8ef7;
-        --accent-dim:     #2d5cb8;
-        --accent-glow:    rgba(79, 142, 247, 0.18);
-        --teal:           #0fd7c4;
-        --teal-dim:       rgba(15, 215, 196, 0.12);
-        --purple:         #a78bfa;
-        --purple-dim:     rgba(167, 139, 250, 0.12);
-        --green:          #34d399;
-        --green-dim:      rgba(52, 211, 153, 0.12);
-        --red:            #f87171;
-        --red-dim:        rgba(248, 113, 113, 0.12);
-        --amber:          #fbbf24;
-        --text-primary:   #eaf0ff;
-        --text-secondary: #7a8fb5;
-        --text-muted:     #445070;
+        --bg-base:        #FAF8F2;
+        --bg-surface:     #FFFFFF;
+        --bg-elevated:    #F1EFE6;
+        --bg-card:        #FFFFFF;
+        --border-subtle:  #E7E5DE;
+        --border-default: #DDD9CC;
+        --border-accent:  #245447;
+        --accent:         #245447;
+        --accent-dim:     #A8BFA5;
+        --accent-glow:    rgba(36, 84, 71, 0.10);
+        --teal:           #245447;
+        --teal-dim:       rgba(36, 84, 71, 0.10);
+        --purple:         #D6A84F;
+        --purple-dim:     rgba(214, 168, 79, 0.14);
+        --green:          #4E7A51;
+        --green-dim:      rgba(78, 122, 81, 0.12);
+        --red:            #C66B4E;
+        --red-dim:        rgba(198, 107, 78, 0.12);
+        --amber:          #D6A84F;
+        --text-primary:   #303632;
+        --text-secondary: #5A625C;
+        --text-muted:     #8A8F88;
         --radius-sm:      8px;
         --radius-md:      12px;
         --radius-lg:      16px;
-        --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
-        --shadow-glow:    0 0 28px rgba(79, 142, 247, 0.12);
+        --shadow-card:    0 1px 3px rgba(48, 54, 50, 0.08), 0 1px 2px rgba(48, 54, 50, 0.06);
+        --shadow-glow:    0 0 0 rgba(0, 0, 0, 0);
     }
 
     /* ============================================================
@@ -193,7 +192,7 @@ st.markdown(
     /* ---- MULTISELECT CONTAINER ---- */
 
     section[data-testid="stSidebar"] [data-testid="stMultiSelect"] > div > div {
-        background: #0d1628 !important;
+        background: #FFFFFF !important;
         border: 1px solid var(--border-default) !important;
         border-radius: 8px !important;
         min-height: 40px !important;
@@ -202,7 +201,7 @@ st.markdown(
 
     section[data-testid="stSidebar"] [data-testid="stMultiSelect"] > div > div:focus-within {
         border-color: var(--accent) !important;
-        box-shadow: 0 0 0 2px rgba(79, 142, 247, 0.18) !important;
+        box-shadow: 0 0 0 2px rgba(36, 84, 71, 0.22) !important;
     }
 
     /* Placeholder text */
@@ -215,10 +214,10 @@ st.markdown(
     /* Target every selected tag span inside the multiselect */
     section[data-testid="stSidebar"] [data-testid="stMultiSelect"] span[data-baseweb="tag"],
     section[data-testid="stSidebar"] .stMultiSelect span[data-baseweb="tag"] {
-        background-color: #162040 !important;
+        background-color: #EFEDE3 !important;
         border: 1px solid var(--border-accent) !important;
         border-radius: 6px !important;
-        color: #a8c4f5 !important;
+        color: #245447 !important;
         font-size: 12px !important;
         font-weight: 500 !important;
         padding: 2px 6px !important;
@@ -237,19 +236,19 @@ st.markdown(
     /* Dropdown option list */
     [data-testid="stMultiSelectOption"],
     li[role="option"] {
-        background: #0d1628 !important;
+        background: #FFFFFF !important;
         color: var(--text-primary) !important;
     }
 
     li[role="option"]:hover,
     [data-testid="stMultiSelectOption"]:hover {
-        background: #162040 !important;
+        background: #EFEDE3 !important;
     }
 
     /* ---- TOGGLE SWITCH ---- */
 
     section[data-testid="stSidebar"] [data-testid="stToggle"] > label {
-        background: #0d1628 !important;
+        background: #FFFFFF !important;
         border: 1px solid var(--border-default) !important;
         border-radius: 8px !important;
         padding: 8px 10px !important;
@@ -289,7 +288,7 @@ st.markdown(
         padding: 4px 12px;
         border-radius: 999px;
         background: var(--green-dim);
-        border: 1px solid rgba(52, 211, 153, 0.35);
+        border: 1px solid rgba(78, 122, 81, 0.4);
         color: var(--green);
         font-size: 11px;
         font-weight: 700;
@@ -430,9 +429,9 @@ st.markdown(
     .metric-card.accent-green::before  { background: linear-gradient(90deg, var(--green), var(--teal)); }
 
     .metric-card.accent-teal   .metric-value { color: var(--teal); }
-    .metric-card.accent-purple .metric-value { color: var(--purple); }
+    .metric-card.accent-purple .metric-value { color: #8A6414; }
     .metric-card.accent-red    .metric-value { color: var(--red); }
-    .metric-card.accent-amber  .metric-value { color: var(--amber); }
+    .metric-card.accent-amber .metric-value { color: #8A6414; }
     .metric-card.accent-green  .metric-value { color: var(--green); }
 
     /* ---------- WINDOW STRIP ---------- */
@@ -614,7 +613,7 @@ if df.empty:
         """
         <div class="header-wrap">
             <div class="main-title">
-                🚦 Real-Time Traffic Congestion &amp; Accident Analytics
+                Real-Time Traffic Congestion &amp; Accident Analytics
             </div>
             <p class="subtitle">
                 Kafka → Spark Structured Streaming → Parquet → Streamlit
@@ -639,11 +638,11 @@ if df.empty:
 # SIDEBAR
 # ============================================================
 
-st.sidebar.title("⚙️ Dashboard Controls")
+st.sidebar.title("Dashboard Controls")
 st.sidebar.markdown("---")
 
 auto_refresh = st.sidebar.toggle(
-    "🔄 Auto Refresh",
+    "Auto Refresh",
     value=True,
 )
 
@@ -659,7 +658,7 @@ else:
     refresh_seconds = 0
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("🔎 Filters")
+st.sidebar.subheader("Filters")
 
 available_roads = sorted(
     df["road_name"].dropna().unique().tolist()
@@ -717,7 +716,7 @@ st.markdown(
     """
     <div class="header-wrap">
         <div class="main-title">
-            🚦 Real-Time Traffic Congestion &amp; Accident Analytics
+            Real-Time Traffic Congestion &amp; Accident Analytics
             <span class="live-badge">● LIVE</span>
         </div>
         <p class="subtitle">
@@ -726,15 +725,15 @@ st.markdown(
     </div>
 
     <div class="pipeline-strip">
-        <span class="pipe-step">🐍 Python Producer</span>
+        <span class="pipe-step">Python Producer</span>
         <span class="pipe-arrow">→</span>
-        <span class="pipe-step">📨 Kafka</span>
+        <span class="pipe-step">Kafka</span>
         <span class="pipe-arrow">→</span>
-        <span class="pipe-step">⚡ Spark Structured Streaming</span>
+        <span class="pipe-step">Spark Structured Streaming</span>
         <span class="pipe-arrow">→</span>
-        <span class="pipe-step">📦 Parquet</span>
+        <span class="pipe-step">Parquet</span>
         <span class="pipe-arrow">→</span>
-        <span class="pipe-step">📊 Streamlit</span>
+        <span class="pipe-step">Streamlit</span>
     </div>
     """,
     unsafe_allow_html=True,
@@ -796,7 +795,7 @@ total_accident_events = int(
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">📊 Current Traffic Overview</div>',
+    '<div class="section-title">Current Traffic Overview</div>',
     unsafe_allow_html=True,
 )
 
@@ -867,17 +866,17 @@ st.markdown(
     f"""
     <div class="window-strip">
         <span class="tag">
-            🕐 <strong>Latest Spark Window:</strong>
+            <strong>Latest Spark Window:</strong>
             {latest_window.strftime("%Y-%m-%d %H:%M:%S")}
         </span>
         <span class="sep">|</span>
         <span class="tag">
-            📦 <strong>Processed rows (all windows):</strong>
+            <strong>Processed rows (all windows):</strong>
             {processed_records:,}
         </span>
         <span class="sep">|</span>
         <span class="tag">
-            ⚡ <strong>Latest-window events:</strong>
+            <strong>Latest-window events:</strong>
             {latest_events:,}
         </span>
     </div>
@@ -891,7 +890,7 @@ st.markdown(
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">🛣️ Current Road Status</div>',
+    '<div class="section-title">Current Road Status</div>',
     unsafe_allow_html=True,
 )
 
@@ -958,12 +957,12 @@ st.dataframe(
 # ============================================================
 
 def apply_chart_style(fig, height=400):
-    """Apply the dashboard's dark Plotly theme without duplicating axis arguments."""
+    """Apply the dashboard's light Plotly theme without duplicating axis arguments."""
     fig.update_layout(
-        paper_bgcolor="#06091a",
-        plot_bgcolor="#06091a",
+        paper_bgcolor="#FAF8F2",
+        plot_bgcolor="#FFFFFF",
         font=dict(
-            color="#c5d0e8",
+            color="#303632",
             family="Inter, Arial, sans-serif",
             size=12,
         ),
@@ -971,37 +970,52 @@ def apply_chart_style(fig, height=400):
         height=height,
         title_font=dict(
             size=14,
-            color="#eaf0ff",
+            color="#245447",
             family="Inter, Arial, sans-serif",
         ),
         hoverlabel=dict(
-            bgcolor="#101828",
-            font_color="#eaf0ff",
-            bordercolor="#1f2d4a",
+            bgcolor="#FFFFFF",
+            font_color="#303632",
+            bordercolor="#DDD9CC",
         ),
         legend=dict(
-            bgcolor="rgba(0,0,0,0)",
-            bordercolor="#1f2d4a",
+            bgcolor="rgba(255,255,255,0)",
+            bordercolor="#DDD9CC",
         ),
     )
 
     fig.update_xaxes(
-        gridcolor="#131d30",
-        zerolinecolor="#1a2540",
-        tickfont=dict(color="#7a8fb5", size=11),
-        title_font=dict(color="#c5d0e8"),
-        linecolor="#1a2540",
+        gridcolor="#E7E5DE",
+        zerolinecolor="#E7E5DE",
+        tickfont=dict(color="#5A625C", size=11),
+        title_font=dict(color="#303632"),
+        linecolor="#DDD9CC",
     )
 
     fig.update_yaxes(
-        gridcolor="#131d30",
-        zerolinecolor="#1a2540",
-        tickfont=dict(color="#7a8fb5", size=11),
-        title_font=dict(color="#c5d0e8"),
-        linecolor="#1a2540",
+        gridcolor="#E7E5DE",
+        zerolinecolor="#E7E5DE",
+        tickfont=dict(color="#5A625C", size=11),
+        title_font=dict(color="#303632"),
+        linecolor="#DDD9CC",
     )
 
     return fig
+
+
+# Shared severity scale: sage (low) -> mustard (moderate) -> terracotta
+# (high) -> deep red (critical). Used by every congestion-coloured figure.
+CONGESTION_SCALE = [
+    [0.0, "#A8BFA5"],
+    [0.45, "#D6A84F"],
+    [0.75, "#C66B4E"],
+    [1.0, "#A93226"],
+]
+
+ACCIDENT_SCALE = [
+    [0.0, "#F3E3D8"],
+    [1.0, "#A93226"],
+]
 
 
 # ============================================================
@@ -1009,7 +1023,7 @@ def apply_chart_style(fig, height=400):
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">🚦 Congestion by Road</div>',
+    '<div class="section-title">Congestion by Road</div>',
     unsafe_allow_html=True,
 )
 
@@ -1025,7 +1039,7 @@ fig = px.bar(
     orientation="h",
     text="congestion_percentage",
     color="congestion_percentage",
-    color_continuous_scale="Blues",
+    color_continuous_scale=CONGESTION_SCALE,
     labels={
         "congestion_percentage": "Congestion (%)",
         "road_name": "Road",
@@ -1062,7 +1076,7 @@ col1, col2 = st.columns(2)
 with col1:
 
     st.markdown(
-        '<div class="section-title">📈 Average Speed Trend</div>',
+        '<div class="section-title">Average Speed Trend</div>',
         unsafe_allow_html=True,
     )
 
@@ -1086,8 +1100,8 @@ with col1:
     )
 
     fig_speed.update_traces(
-        line=dict(color="#4f8ef7", width=2.5),
-        marker=dict(color="#4f8ef7", size=7),
+        line=dict(color="#245447", width=2.5),
+        marker=dict(color="#245447", size=7),
     )
 
     apply_chart_style(fig_speed, height=380)
@@ -1100,7 +1114,7 @@ with col1:
 with col2:
 
     st.markdown(
-        '<div class="section-title">📉 Congestion Trend</div>',
+        '<div class="section-title">Congestion Trend</div>',
         unsafe_allow_html=True,
     )
 
@@ -1125,8 +1139,8 @@ with col2:
     )
 
     fig_congestion.update_traces(
-        line=dict(color="#f87171", width=2.5),
-        marker=dict(color="#f87171", size=7),
+        line=dict(color="#C66B4E", width=2.5),
+        marker=dict(color="#C66B4E", size=7),
     )
 
     apply_chart_style(fig_congestion, height=380)
@@ -1144,7 +1158,7 @@ with col2:
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">🚨 Accident Analytics</div>',
+    '<div class="section-title">Accident Analytics</div>',
     unsafe_allow_html=True,
 )
 
@@ -1165,7 +1179,7 @@ with col1:
         y="accident_count",
         text="accident_count",
         color="accident_count",
-        color_continuous_scale="Reds",
+        color_continuous_scale=ACCIDENT_SCALE,
         labels={
             "road_name": "Road",
             "accident_count": "Accident Events",
@@ -1208,8 +1222,8 @@ with col2:
     )
 
     fig_acc_trend.update_traces(
-        line=dict(color="#fbbf24", width=2.5),
-        marker=dict(color="#fbbf24", size=7),
+        line=dict(color="#D6A84F", width=2.5),
+        marker=dict(color="#D6A84F", size=7),
     )
 
     apply_chart_style(fig_acc_trend, height=380)
@@ -1222,7 +1236,7 @@ with col2:
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">🗺️ Traffic &amp; Accident Map</div>',
+    '<div class="section-title">Traffic &amp; Accident Map</div>',
     unsafe_allow_html=True,
 )
 
@@ -1318,7 +1332,7 @@ else:
             "latitude": False,
             "longitude": False,
         },
-        color_continuous_scale="Turbo",
+        color_continuous_scale=CONGESTION_SCALE,
         center={"lat": map_center_lat, "lon": map_center_lon},
         zoom=11,
         height=550,
@@ -1333,8 +1347,8 @@ else:
     )
 
     fig_map.update_layout(
-        paper_bgcolor="#06091a",
-        plot_bgcolor="#06091a",
+        paper_bgcolor="#FAF8F2",
+        plot_bgcolor="#FAF8F2",
         margin=dict(l=0, r=0, t=0, b=0),
     )
 
@@ -1352,7 +1366,7 @@ else:
 # ============================================================
 
 st.markdown(
-    '<div class="section-title">📋 Dataset Summary</div>',
+    '<div class="section-title">Dataset Summary</div>',
     unsafe_allow_html=True,
 )
 

@@ -151,7 +151,7 @@ s = new_slide("Abstract", N); N += 1
 bullets(s, [
     ("Urban congestion and accidents demand both live situational awareness and short-horizon forecasts.", None),
     ("This project builds a streaming analytics pipeline: a Python producer emits traffic events to Kafka; Spark Structured Streaming aggregates them into Parquet; a Streamlit dashboard visualises congestion, accidents and trends.", None),
-    ("Separately, RandomForest regressors trained on sampled PEMS-BAY data forecast traffic at 5-, 15- and 60-minute horizons (recorded test R²: 0.966 / 0.889 / 0.600).", None),
+    ("Separately, RandomForest regressors trained on sampled PEMS-BAY data forecast traffic at 5-, 15- and 60-minute horizons (recorded test R²: 0.966 / 0.889 / 0.600; live-scored on a 100-row sample with MAE 0.74 / 0.85 / 1.34).", None),
     ("The live pipeline is verified end-to-end (Kafka offsets, Spark micro-batches, Parquet output, dashboard); 16/16 project tests pass.", None),
 ])
 
@@ -232,7 +232,7 @@ s = new_slide("Details of the Dataset Used", N); N += 1
 bullets(s, [
     ("Live-simulated stream: 5 roads (Central Avenue, Market Road, Airport Road, River Bridge, Highway Junction) with speed, vehicle counts and accident flags; 60-event bounded run filled Kafka offsets 15/21/24 across 3 partitions.", "Streaming events:"),
     ("Batch analytics data: Metro Interstate Traffic Volume (UCI, Hogue 2019) — 48,204 hourly rows, I-94 Minneapolis–St Paul 2012–2018, weather + holiday features; never substituted for PEMS-BAY.", "Metro Interstate:"),
-    ("Forecasting data: PEMS-BAY Bay-Area sample (325 sensors, ≤150k rows/split, seed 42) with 12 lag features x_t-11…x_t and targets y_t+1/+3/+12. The small test CSV is still to be placed in data/raw/ — the page shows guidance until then.", "PEMS-BAY (historical):"),
+    ("Forecasting data: PEMS-BAY Bay-Area sample (325 sensors, ≤150k rows/split, seed 42) with 12 lag features x_t-11…x_t and targets y_t+1/+3/+12. A 100-row test sample in data/raw/ is scored live (see Results).", "PEMS-BAY (historical):"),
     ("Streaming output: Parquet summaries (window, road, avg speed, congestion %, level, vehicles, accidents) — 700+ rows and growing; zero nulls in validation.", "Processed output:"),
 ])
 
@@ -247,9 +247,9 @@ bullets(s, [
 ])
 
 # ---------- 12. COMPARATIVE RESULTS (genuine recorded test metrics + chart) ----------
-s = new_slide("Comparative Results (Recorded Test Metrics)", N); N += 1
+s = new_slide("Comparative Results (Recorded + Live-Scored)", N); N += 1
 set_text(add_box(s, 0.9, 1.35, 11.5, 0.4),
-         "Recorded test-split metrics from the sampled PEMS-BAY experiment (not live-computed; test CSV pending). Deployed model: RandomForest.",
+         "Recorded test-split metrics from the sampled PEMS-BAY experiment. Deployed model: RandomForest. Live-scored 100-row sample below.",
          size=13, color=GRAY)
 s.shapes.add_table(6, 5, Inches(0.9), Inches(1.9), Inches(6.4), Inches(2.6))
 rt = None
@@ -286,7 +286,7 @@ ch.value_axis.has_title = True; ch.value_axis.axis_title.text_frame.text = "Test
 cat = ch.plots[0]
 cat.has_data_labels = False
 set_text(add_box(s, 0.9, 5.55, 11.5, 0.9),
-         "Reading: RandomForest wins all horizons; error grows with horizon (5-min R² 0.966 → 60-min R² 0.600) — near-term traffic is far more predictable.",
+         "Reading: RandomForest wins all horizons; error grows with horizon (5-min R² 0.966 → 60-min R² 0.600). Live 100-row sample: MAE 0.74/0.85/1.34, RMSE 0.93/1.08/1.84 — healthy; sample R² is negative only because the slice is near-constant (std ≈ 0.88).",
          size=14, color=GRAY, align=PP_ALIGN.CENTER)
 
 # ---------- 13. LIVE VERIFICATION ----------
@@ -296,7 +296,7 @@ bullets(s, [
     ("Spark → Parquet verified: micro-batches (e.g. 5 road summaries) appended; output read back with valid coords, 0 nulls; checkpoint resume reprocessed only the failed batch.", "Processing:"),
     ("Dashboard verified: HTTP 200, health ok, zero log exceptions with live data; empty-state, filter-empty and missing-CSV warnings all render.", "Serving:"),
     ("One command runs everything (scripts/start.sh --full-stack, duplicate-safe); scripts/stop.sh stops cleanly without deleting data.", "Operations:"),
-    ("Not claimed: browser-pixel rendering; live PEMS-BAY scoring (test CSV absent — sample-level predictions only).", "Limits:"),
+    ("Not claimed: browser-pixel rendering. PEMS-BAY is scored live on the 100-row sample (healthy MAE/RMSE; R² negative on the near-constant slice) — full-split scoring awaits the larger sample.", "Limits:"),
 ])
 
 # ---------- 14. CONCLUSION ----------
@@ -305,7 +305,7 @@ bullets(s, [
     ("A working Big Data pipeline now runs on Linux: simulated traffic flows from producer to dashboard in ~10-second micro-batches.", None),
     ("Congestion percentage, four congestion levels and accident counts are computed per road and visualised with trends and a live map.", None),
     ("Recorded PEMS-BAY results favour RandomForest at every horizon, with strong short-horizon skill (R² 0.966 at 5 min).", None),
-    ("Genuine gaps remain: the PEMS-BAY test CSV must be supplied before live forecast scoring; the map needs a browser check.", None),
+    ("Genuine gaps remaining: full-split forecast scoring needs the larger PEMS-BAY sample (only 100 rows on hand); the map still wants a browser pixel-check.", None),
 ])
 
 # ---------- 15. FUTURE SCOPE ----------

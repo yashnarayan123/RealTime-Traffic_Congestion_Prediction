@@ -62,11 +62,10 @@ HORIZONS = {
 
 st.set_page_config(
     page_title="Traffic Forecasting",
-    page_icon="📈",
     layout="wide",
 )
 
-st.title("📈 Traffic Forecasting")
+st.title("Traffic Forecasting")
 st.caption(
     "Historical traffic forecasting using trained PEMS-BAY models"
 )
@@ -256,7 +255,7 @@ fig.add_trace(
         y=plot_df["Actual"],
         mode="lines+markers",
         name="Actual",
-        line=dict(color="#0fd7c4", width=2),
+        line=dict(color="#245447", width=2),
         marker=dict(size=5),
     )
 )
@@ -267,15 +266,15 @@ fig.add_trace(
         y=plot_df["Predicted"],
         mode="lines+markers",
         name="Predicted",
-        line=dict(color="#a78bfa", width=2),
+        line=dict(color="#C66B4E", width=2),
         marker=dict(size=5),
     )
 )
 
 fig.update_layout(
-    template="plotly_dark",
-    paper_bgcolor="#06091a",
-    plot_bgcolor="#0b1120",
+    template="plotly_white",
+    paper_bgcolor="#FAF8F2",
+    plot_bgcolor="#FFFFFF",
     height=450,
     margin=dict(l=20, r=20, t=30, b=20),
     xaxis_title="Sample row",
