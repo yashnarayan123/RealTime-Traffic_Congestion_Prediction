@@ -1,0 +1,16 @@
+# Keep the Docker build context small. The spark image installs Kafka
+# connector jars via curl and mounts project sources at runtime
+# (./:/opt/traffic), so nothing below is needed inside the image.
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.git/
+logs/
+*.log
+data/
+models/
+batch_experiment/
+tests/
+tmp/
+.DS_Store

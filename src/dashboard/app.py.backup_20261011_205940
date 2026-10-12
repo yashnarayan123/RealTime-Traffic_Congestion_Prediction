@@ -1,0 +1,1343 @@
+import os
+import time
+import pandas as pd
+import streamlit as st
+import plotly.express as px
+
+
+# ============================================================
+# PAGE CONFIG
+# ============================================================
+
+st.set_page_config(
+    page_title="Traffic Analytics",
+    page_icon="🚦",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+
+# ============================================================
+# PATHS
+# ============================================================
+
+PROJECT_DIR = r"C:\Projects\TrafficAnalytics"
+
+PARQUET_DIR = os.path.join(
+    PROJECT_DIR,
+    "data",
+    "processed",
+    "traffic_summary",
+)
+
+
+# ============================================================
+# CUSTOM CSS
+# ============================================================
+
+st.markdown(
+    """
+    <style>
+
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    /* ---------- ROOT TOKENS ---------- */
+
+    :root {
+        --bg-base:        #06091a;
+        --bg-surface:     #0b1120;
+        --bg-elevated:    #101828;
+        --bg-card:        #0f1724;
+        --border-subtle:  #1a2540;
+        --border-default: #1f2d4a;
+        --border-accent:  #2a3f6e;
+        --accent:         #4f8ef7;
+        --accent-dim:     #2d5cb8;
+        --accent-glow:    rgba(79, 142, 247, 0.18);
+        --teal:           #0fd7c4;
+        --teal-dim:       rgba(15, 215, 196, 0.12);
+        --purple:         #a78bfa;
+        --purple-dim:     rgba(167, 139, 250, 0.12);
+        --green:          #34d399;
+        --green-dim:      rgba(52, 211, 153, 0.12);
+        --red:            #f87171;
+        --red-dim:        rgba(248, 113, 113, 0.12);
+        --amber:          #fbbf24;
+        --text-primary:   #eaf0ff;
+        --text-secondary: #7a8fb5;
+        --text-muted:     #445070;
+        --radius-sm:      8px;
+        --radius-md:      12px;
+        --radius-lg:      16px;
+        --shadow-card:    0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 4px rgba(0, 0, 0, 0.3);
+        --shadow-glow:    0 0 28px rgba(79, 142, 247, 0.12);
+    }
+
+    /* ============================================================
+       FIX 1 — HIDE THE STREAMLIT HEADER TOOLBAR SO TOP IS NEVER CLIPPED
+       ============================================================ */
+
+    /* Hide the top "Deploy / Stop / ..." action bar */
+    header[data-testid="stHeader"] {
+        display: none !important;
+        height: 0 !important;
+    }
+
+    /* The bar Streamlit injects above the main content pane */
+    #stDecoration,
+    div[data-testid="stDecoration"],
+    .stAppDeployButton,
+    div[data-testid="stToolbar"],
+    div[data-testid="stStatusWidget"] {
+        display: none !important;
+    }
+
+    /* Remove the gap that used to hold the header */
+    .appview-container .main .block-container {
+        padding-top: 1.8rem !important;
+    }
+
+    /* ---------- GLOBAL ---------- */
+
+    html, body, [data-testid="stApp"] {
+        background: var(--bg-base) !important;
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    .block-container {
+        padding: 1.8rem 2.2rem 3rem !important;
+        max-width: 1560px !important;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Inter', sans-serif !important;
+        color: var(--text-primary) !important;
+    }
+
+    /* ---------- SCROLLBAR ---------- */
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-base); }
+    ::-webkit-scrollbar-thumb { background: var(--border-accent); border-radius: 3px; }
+
+    /* ============================================================
+       FIX 2 — SIDEBAR: full restyle incl. multiselect tag pills
+       ============================================================ */
+
+    section[data-testid="stSidebar"] {
+        background: var(--bg-surface) !important;
+        border-right: 1px solid var(--border-default) !important;
+        min-width: 270px !important;
+    }
+
+    /* Sidebar inner padding */
+    section[data-testid="stSidebar"] > div:first-child {
+        padding: 1.4rem 1.1rem 1rem !important;
+    }
+
+    /* Sidebar text colours */
+    section[data-testid="stSidebar"] h1,
+    section[data-testid="stSidebar"] h2,
+    section[data-testid="stSidebar"] h3,
+    section[data-testid="stSidebar"] p,
+    section[data-testid="stSidebar"] label {
+        color: var(--text-primary) !important;
+        font-family: 'Inter', sans-serif !important;
+    }
+
+    /* The "Dashboard Controls" title */
+    section[data-testid="stSidebar"] h1 {
+        font-size: 17px !important;
+        font-weight: 700 !important;
+        letter-spacing: -0.2px !important;
+        margin-bottom: 0 !important;
+    }
+
+    /* Sidebar subheadings */
+    section[data-testid="stSidebar"] h3 {
+        font-size: 13px !important;
+        font-weight: 600 !important;
+        color: var(--text-secondary) !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.7px !important;
+        margin-top: 0 !important;
+    }
+
+    /* Sidebar divider */
+    section[data-testid="stSidebar"] hr {
+        border-color: var(--border-default) !important;
+        margin: 0.85rem 0 !important;
+    }
+
+    /* Sidebar caption */
+    section[data-testid="stSidebar"] small,
+    section[data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {
+        color: var(--text-muted) !important;
+        font-size: 11px !important;
+    }
+
+    /* Toggle label */
+    section[data-testid="stSidebar"] [data-testid="stToggle"] p {
+        color: var(--text-primary) !important;
+        font-size: 14px !important;
+    }
+
+    /* Slider value label */
+    section[data-testid="stSidebar"] .stSlider p {
+        color: var(--text-secondary) !important;
+        font-size: 13px !important;
+    }
+
+    /* ---- MULTISELECT CONTAINER ---- */
+
+    section[data-testid="stSidebar"] [data-testid="stMultiSelect"] > div > div {
+        background: #0d1628 !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: 8px !important;
+        min-height: 40px !important;
+        color: var(--text-primary) !important;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stMultiSelect"] > div > div:focus-within {
+        border-color: var(--accent) !important;
+        box-shadow: 0 0 0 2px rgba(79, 142, 247, 0.18) !important;
+    }
+
+    /* Placeholder text */
+    section[data-testid="stSidebar"] [data-testid="stMultiSelect"] input::placeholder {
+        color: var(--text-muted) !important;
+    }
+
+    /* ---- THE SELECTED-VALUE PILL TAGS (fix the salmon/red color) ---- */
+
+    /* Target every selected tag span inside the multiselect */
+    section[data-testid="stSidebar"] [data-testid="stMultiSelect"] span[data-baseweb="tag"],
+    section[data-testid="stSidebar"] .stMultiSelect span[data-baseweb="tag"] {
+        background-color: #162040 !important;
+        border: 1px solid var(--border-accent) !important;
+        border-radius: 6px !important;
+        color: #a8c4f5 !important;
+        font-size: 12px !important;
+        font-weight: 500 !important;
+        padding: 2px 6px !important;
+    }
+
+    /* The × close button inside each tag */
+    section[data-testid="stSidebar"] [data-testid="stMultiSelect"] span[data-baseweb="tag"] span[role="presentation"],
+    section[data-testid="stSidebar"] .stMultiSelect span[data-baseweb="tag"] span[role="presentation"] {
+        color: var(--text-secondary) !important;
+    }
+
+    section[data-testid="stSidebar"] [data-testid="stMultiSelect"] span[data-baseweb="tag"] span[role="presentation"]:hover {
+        color: var(--text-primary) !important;
+    }
+
+    /* Dropdown option list */
+    [data-testid="stMultiSelectOption"],
+    li[role="option"] {
+        background: #0d1628 !important;
+        color: var(--text-primary) !important;
+    }
+
+    li[role="option"]:hover,
+    [data-testid="stMultiSelectOption"]:hover {
+        background: #162040 !important;
+    }
+
+    /* ---- TOGGLE SWITCH ---- */
+
+    section[data-testid="stSidebar"] [data-testid="stToggle"] > label {
+        background: #0d1628 !important;
+        border: 1px solid var(--border-default) !important;
+        border-radius: 8px !important;
+        padding: 8px 10px !important;
+    }
+
+    /* ---- SLIDER ---- */
+
+    section[data-testid="stSidebar"] [data-testid="stSlider"] > div > div {
+        background: var(--border-subtle) !important;
+    }
+
+    /* ---------- HEADER BLOCK ---------- */
+
+    .header-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        margin-bottom: 20px;
+    }
+
+    .main-title {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--text-primary);
+        line-height: 1.2;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .live-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 999px;
+        background: var(--green-dim);
+        border: 1px solid rgba(52, 211, 153, 0.35);
+        color: var(--green);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        animation: pulse-badge 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-badge {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.6; }
+    }
+
+    .subtitle {
+        color: var(--text-secondary);
+        font-size: 14px;
+        font-weight: 400;
+        margin: 0;
+    }
+
+    /* ---------- PIPELINE STRIP ---------- */
+
+    .pipeline-strip {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 0;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        padding: 10px 16px;
+        margin-bottom: 24px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .pipe-step {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 9px;
+        border-radius: 6px;
+        color: var(--text-secondary);
+        white-space: nowrap;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .pipe-step:hover {
+        background: var(--border-subtle);
+        color: var(--text-primary);
+    }
+
+    .pipe-arrow {
+        color: var(--border-accent);
+        font-size: 14px;
+        padding: 0 2px;
+    }
+
+    /* ---------- SECTION TITLE ---------- */
+
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 17px;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin: 32px 0 12px;
+        letter-spacing: -0.2px;
+    }
+
+    .section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(90deg, var(--border-default), transparent);
+        margin-left: 4px;
+    }
+
+    /* ---------- METRIC CARDS ---------- */
+
+    .metric-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-lg);
+        padding: 18px 16px 14px;
+        position: relative;
+        overflow: hidden;
+        box-shadow: var(--shadow-card);
+        transition: border-color 0.2s, box-shadow 0.2s;
+        min-height: 118px;
+    }
+
+    .metric-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--teal));
+        opacity: 0.7;
+    }
+
+    .metric-card:hover {
+        border-color: var(--border-accent);
+        box-shadow: var(--shadow-card), var(--shadow-glow);
+    }
+
+    .metric-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.9px;
+        margin-bottom: 8px;
+    }
+
+    .metric-value {
+        font-size: 30px;
+        font-weight: 800;
+        color: var(--text-primary);
+        letter-spacing: -1px;
+        line-height: 1;
+        margin-bottom: 6px;
+    }
+
+    .metric-subtitle {
+        font-size: 12px;
+        font-weight: 400;
+        color: var(--text-muted);
+    }
+
+    /* accent variants */
+    .metric-card.accent-teal::before   { background: linear-gradient(90deg, var(--teal), var(--accent)); }
+    .metric-card.accent-purple::before { background: linear-gradient(90deg, var(--purple), var(--accent)); }
+    .metric-card.accent-red::before    { background: linear-gradient(90deg, var(--red), var(--amber)); }
+    .metric-card.accent-amber::before  { background: linear-gradient(90deg, var(--amber), var(--green)); }
+    .metric-card.accent-green::before  { background: linear-gradient(90deg, var(--green), var(--teal)); }
+
+    .metric-card.accent-teal   .metric-value { color: var(--teal); }
+    .metric-card.accent-purple .metric-value { color: var(--purple); }
+    .metric-card.accent-red    .metric-value { color: var(--red); }
+    .metric-card.accent-amber  .metric-value { color: var(--amber); }
+    .metric-card.accent-green  .metric-value { color: var(--green); }
+
+    /* ---------- WINDOW STRIP ---------- */
+
+    .window-strip {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px 20px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-md);
+        padding: 10px 16px;
+        margin-top: 14px;
+        font-size: 13px;
+        color: var(--text-secondary);
+    }
+
+    .window-strip .tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .window-strip strong {
+        color: var(--text-primary);
+        font-weight: 600;
+    }
+
+    .window-strip .sep {
+        color: var(--border-accent);
+    }
+
+    /* ---------- DATAFRAME ---------- */
+
+    [data-testid="stDataFrame"] {
+        border-radius: var(--radius-md) !important;
+        border: 1px solid var(--border-default) !important;
+        overflow: hidden;
+    }
+
+    /* ---------- ST METRICS (dataset summary) ---------- */
+
+    [data-testid="stMetric"] {
+        background: var(--bg-card);
+        border: 1px solid var(--border-default);
+        border-radius: var(--radius-md);
+        padding: 18px 16px !important;
+        box-shadow: var(--shadow-card);
+    }
+
+    [data-testid="stMetricLabel"] p {
+        font-size: 11px !important;
+        font-weight: 600 !important;
+        color: var(--text-muted) !important;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+
+    [data-testid="stMetricValue"] {
+        font-size: 26px !important;
+        font-weight: 800 !important;
+        color: var(--text-primary) !important;
+        letter-spacing: -0.8px;
+    }
+
+    /* ---------- PLOTLY CONTAINER ---------- */
+
+    [data-testid="stPlotlyChart"] {
+        border: 1px solid var(--border-subtle);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        background: var(--bg-card);
+    }
+
+    /* ---------- ALERT / WARNING ---------- */
+
+    [data-testid="stAlert"] {
+        border-radius: var(--radius-md) !important;
+        border-left-width: 3px !important;
+    }
+
+    /* ---------- FOOTER ---------- */
+
+    .footer {
+        text-align: center;
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 400;
+        margin-top: 52px;
+        padding: 24px;
+        border-top: 1px solid var(--border-subtle);
+        line-height: 2;
+        letter-spacing: 0.2px;
+    }
+
+    .footer .tech-tag {
+        display: inline-block;
+        margin: 0 4px;
+        padding: 2px 8px;
+        background: var(--bg-elevated);
+        border: 1px solid var(--border-default);
+        border-radius: 5px;
+        font-size: 11px;
+        color: var(--text-secondary);
+    }
+
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# DATA LOADING
+# ============================================================
+
+@st.cache_data(ttl=5)
+def load_data():
+
+    if not os.path.exists(PARQUET_DIR):
+        return pd.DataFrame()
+
+    try:
+        df = pd.read_parquet(PARQUET_DIR)
+
+        if df.empty:
+            return df
+
+        df["window_start"] = pd.to_datetime(
+            df["window_start"],
+            errors="coerce",
+        )
+
+        df["window_end"] = pd.to_datetime(
+            df["window_end"],
+            errors="coerce",
+        )
+
+        numeric_columns = [
+            "avg_speed_kmh",
+            "free_flow_speed_kmh",
+            "congestion_percentage",
+            "total_vehicles",
+            "event_count",
+            "accident_count",
+        ]
+
+        for column in numeric_columns:
+            if column in df.columns:
+                df[column] = pd.to_numeric(
+                    df[column],
+                    errors="coerce",
+                )
+
+        df = df.dropna(subset=["window_start", "road_name"])
+
+        return df
+
+    except Exception as e:
+        st.error(f"Unable to read processed traffic data: {e}")
+        return pd.DataFrame()
+
+
+# ============================================================
+# LOAD DATA
+# ============================================================
+
+df = load_data()
+
+
+# ============================================================
+# EMPTY DATA HANDLING
+# ============================================================
+
+if df.empty:
+
+    st.markdown(
+        """
+        <div class="header-wrap">
+            <div class="main-title">
+                🚦 Real-Time Traffic Congestion &amp; Accident Analytics
+            </div>
+            <p class="subtitle">
+                Kafka → Spark Structured Streaming → Parquet → Streamlit
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    st.warning(
+        "No processed traffic data is available yet. "
+        "Make sure the Spark streaming processor is running."
+    )
+
+    st.stop()
+
+
+# ============================================================
+# SIDEBAR
+# ============================================================
+
+st.sidebar.title("⚙️ Dashboard Controls")
+st.sidebar.markdown("---")
+
+auto_refresh = st.sidebar.toggle(
+    "🔄 Auto Refresh",
+    value=True,
+)
+
+if auto_refresh:
+    refresh_seconds = st.sidebar.slider(
+        "Refresh Interval (seconds)",
+        min_value=5,
+        max_value=60,
+        value=10,
+        step=5,
+    )
+else:
+    refresh_seconds = 0
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("🔎 Filters")
+
+available_roads = sorted(
+    df["road_name"].dropna().unique().tolist()
+)
+
+selected_roads = st.sidebar.multiselect(
+    "Select Roads",
+    available_roads,
+    default=available_roads,
+)
+
+available_levels = [
+    "FREE_FLOW",
+    "MODERATE",
+    "HEAVY",
+    "SEVERE",
+]
+
+selected_levels = st.sidebar.multiselect(
+    "Congestion Level",
+    available_levels,
+    default=available_levels,
+)
+
+st.sidebar.markdown("---")
+
+st.sidebar.caption(
+    "Data source: Spark Structured Streaming"
+)
+
+st.sidebar.caption(
+    "Refresh reads the latest Parquet output."
+)
+
+
+# ============================================================
+# FILTER DATA
+# ============================================================
+
+filtered_df = df[
+    df["road_name"].isin(selected_roads)
+    & df["congestion_level"].isin(selected_levels)
+].copy()
+
+if filtered_df.empty:
+    st.warning("No records match the selected filters.")
+    st.stop()
+
+
+# ============================================================
+# HEADER
+# ============================================================
+
+st.markdown(
+    """
+    <div class="header-wrap">
+        <div class="main-title">
+            🚦 Real-Time Traffic Congestion &amp; Accident Analytics
+            <span class="live-badge">● LIVE</span>
+        </div>
+        <p class="subtitle">
+            Monitor road traffic, congestion, vehicle flow and accident events in real time.
+        </p>
+    </div>
+
+    <div class="pipeline-strip">
+        <span class="pipe-step">🐍 Python Producer</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">📨 Kafka</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">⚡ Spark Structured Streaming</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">📦 Parquet</span>
+        <span class="pipe-arrow">→</span>
+        <span class="pipe-step">📊 Streamlit</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# LATEST WINDOW
+# ============================================================
+
+latest_window = filtered_df["window_start"].max()
+
+latest_df = filtered_df[
+    filtered_df["window_start"] == latest_window
+].copy()
+
+
+# ============================================================
+# KPI CALCULATIONS
+# ============================================================
+
+active_roads = latest_df["road_name"].nunique()
+
+current_vehicles = int(
+    latest_df["total_vehicles"].sum()
+)
+
+current_accidents = int(
+    latest_df["accident_count"].sum()
+)
+
+average_speed = (
+    latest_df["avg_speed_kmh"].mean()
+    if not latest_df.empty
+    else 0
+)
+
+current_congested_roads = latest_df[
+    latest_df["congestion_level"] != "FREE_FLOW"
+]["road_name"].nunique()
+
+processed_records = len(filtered_df)
+
+roads_monitored = filtered_df["road_name"].nunique()
+
+total_accident_events = int(
+    filtered_df["accident_count"].sum()
+)
+
+
+# ============================================================
+# OVERVIEW
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📊 Current Traffic Overview</div>',
+    unsafe_allow_html=True,
+)
+
+c1, c2, c3, c4, c5 = st.columns(5)
+
+with c1:
+    st.markdown(
+        f"""
+        <div class="metric-card accent-teal">
+            <div class="metric-title">Active Roads</div>
+            <div class="metric-value">{active_roads}</div>
+            <div class="metric-subtitle">Roads in latest window</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c2:
+    st.markdown(
+        f"""
+        <div class="metric-card accent-purple">
+            <div class="metric-title">Current Vehicles</div>
+            <div class="metric-value">{current_vehicles:,}</div>
+            <div class="metric-subtitle">Latest 30-second window</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c3:
+    st.markdown(
+        f"""
+        <div class="metric-card accent-red">
+            <div class="metric-title">Current Accidents</div>
+            <div class="metric-value">{current_accidents}</div>
+            <div class="metric-subtitle">Latest traffic window</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c4:
+    st.markdown(
+        f"""
+        <div class="metric-card accent-amber">
+            <div class="metric-title">Average Speed</div>
+            <div class="metric-value">{average_speed:.1f}</div>
+            <div class="metric-subtitle">km/h · latest window</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+with c5:
+    st.markdown(
+        f"""
+        <div class="metric-card accent-green">
+            <div class="metric-title">Congested Roads</div>
+            <div class="metric-value">{current_congested_roads}</div>
+            <div class="metric-subtitle">Moderate or worse</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+st.markdown(
+    f"""
+    <div class="window-strip">
+        <span class="tag">
+            🕐 <strong>Latest Spark Window:</strong>
+            {latest_window.strftime("%Y-%m-%d %H:%M:%S")}
+        </span>
+        <span class="sep">|</span>
+        <span class="tag">
+            📦 <strong>Processed Records:</strong>
+            {processed_records:,}
+        </span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# CURRENT ROAD STATUS
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">🛣️ Current Road Status</div>',
+    unsafe_allow_html=True,
+)
+
+st.caption(
+    "Live status for the latest 30-second Spark aggregation window. "
+    "Rows are ordered from highest to lowest congestion."
+)
+
+status_df = latest_df[
+    [
+        "road_name",
+        "avg_speed_kmh",
+        "free_flow_speed_kmh",
+        "congestion_percentage",
+        "congestion_level",
+        "total_vehicles",
+        "accident_count",
+    ]
+].copy()
+
+status_df = status_df.sort_values(
+    "congestion_percentage",
+    ascending=False,
+)
+
+status_df.columns = [
+    "Road",
+    "Avg Speed (km/h)",
+    "Free Flow (km/h)",
+    "Congestion (%)",
+    "Status",
+    "Vehicles",
+    "Accidents",
+]
+
+st.dataframe(
+    status_df,
+    use_container_width=True,
+    hide_index=True,
+    column_config={
+        "Road": st.column_config.TextColumn("Road"),
+        "Avg Speed (km/h)": st.column_config.NumberColumn(
+            "Avg Speed (km/h)", format="%.2f",
+        ),
+        "Free Flow (km/h)": st.column_config.NumberColumn(
+            "Free Flow (km/h)", format="%.2f",
+        ),
+        "Congestion (%)": st.column_config.NumberColumn(
+            "Congestion (%)", format="%.2f%%",
+        ),
+        "Status": st.column_config.TextColumn("Status"),
+        "Vehicles": st.column_config.NumberColumn(
+            "Vehicles", format="%d",
+        ),
+        "Accidents": st.column_config.NumberColumn(
+            "Accidents", format="%d",
+        ),
+    },
+)
+
+
+# ============================================================
+# PLOTLY THEME
+# ============================================================
+
+def apply_chart_style(fig, height=400):
+    """Apply the dashboard's dark Plotly theme without duplicating axis arguments."""
+    fig.update_layout(
+        paper_bgcolor="#06091a",
+        plot_bgcolor="#06091a",
+        font=dict(
+            color="#c5d0e8",
+            family="Inter, Arial, sans-serif",
+            size=12,
+        ),
+        margin=dict(l=10, r=20, t=55, b=20),
+        height=height,
+        title_font=dict(
+            size=14,
+            color="#eaf0ff",
+            family="Inter, Arial, sans-serif",
+        ),
+        hoverlabel=dict(
+            bgcolor="#101828",
+            font_color="#eaf0ff",
+            bordercolor="#1f2d4a",
+        ),
+        legend=dict(
+            bgcolor="rgba(0,0,0,0)",
+            bordercolor="#1f2d4a",
+        ),
+    )
+
+    fig.update_xaxes(
+        gridcolor="#131d30",
+        zerolinecolor="#1a2540",
+        tickfont=dict(color="#7a8fb5", size=11),
+        title_font=dict(color="#c5d0e8"),
+        linecolor="#1a2540",
+    )
+
+    fig.update_yaxes(
+        gridcolor="#131d30",
+        zerolinecolor="#1a2540",
+        tickfont=dict(color="#7a8fb5", size=11),
+        title_font=dict(color="#c5d0e8"),
+        linecolor="#1a2540",
+    )
+
+    return fig
+
+
+# ============================================================
+# CONGESTION BY ROAD
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">🚦 Congestion by Road</div>',
+    unsafe_allow_html=True,
+)
+
+congestion_chart = latest_df.sort_values(
+    "congestion_percentage",
+    ascending=True,
+)
+
+fig = px.bar(
+    congestion_chart,
+    x="congestion_percentage",
+    y="road_name",
+    orientation="h",
+    text="congestion_percentage",
+    color="congestion_percentage",
+    color_continuous_scale="Blues",
+    labels={
+        "congestion_percentage": "Congestion (%)",
+        "road_name": "Road",
+    },
+    title="Current Congestion Level",
+)
+
+fig.update_traces(
+    texttemplate="%{text:.1f}%",
+    textposition="outside",
+    marker_line_width=0,
+)
+
+apply_chart_style(fig, height=430)
+
+fig.update_coloraxes(showscale=False)
+
+fig.update_xaxes(
+    title="Congestion (%)",
+    range=[0, 100],
+)
+
+fig.update_yaxes(title="")
+
+st.plotly_chart(fig, use_container_width=True)
+
+
+# ============================================================
+# SPEED + CONGESTION TRENDS
+# ============================================================
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    st.markdown(
+        '<div class="section-title">📈 Average Speed Trend</div>',
+        unsafe_allow_html=True,
+    )
+
+    trend_speed = (
+        filtered_df
+        .groupby("window_start", as_index=False)["avg_speed_kmh"]
+        .mean()
+        .sort_values("window_start")
+    )
+
+    fig_speed = px.line(
+        trend_speed,
+        x="window_start",
+        y="avg_speed_kmh",
+        markers=True,
+        labels={
+            "window_start": "Time",
+            "avg_speed_kmh": "Average Speed (km/h)",
+        },
+    )
+
+    fig_speed.update_traces(
+        line=dict(color="#4f8ef7", width=2.5),
+        marker=dict(color="#4f8ef7", size=7),
+    )
+
+    apply_chart_style(fig_speed, height=380)
+
+    fig_speed.update_yaxes(title="Average Speed (km/h)")
+
+    st.plotly_chart(fig_speed, use_container_width=True)
+
+
+with col2:
+
+    st.markdown(
+        '<div class="section-title">📉 Congestion Trend</div>',
+        unsafe_allow_html=True,
+    )
+
+    trend_congestion = (
+        filtered_df
+        .groupby("window_start", as_index=False)
+        ["congestion_percentage"]
+        .mean()
+        .sort_values("window_start")
+    )
+
+    fig_congestion = px.line(
+        trend_congestion,
+        x="window_start",
+        y="congestion_percentage",
+        markers=True,
+        labels={
+            "window_start": "Time",
+            "congestion_percentage": "Congestion (%)",
+        },
+    )
+
+    fig_congestion.update_traces(
+        line=dict(color="#f87171", width=2.5),
+        marker=dict(color="#f87171", size=7),
+    )
+
+    apply_chart_style(fig_congestion, height=380)
+
+    fig_congestion.update_yaxes(
+        title="Congestion (%)",
+        range=[0, 100],
+    )
+
+    st.plotly_chart(fig_congestion, use_container_width=True)
+
+
+# ============================================================
+# ACCIDENT ANALYTICS
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">🚨 Accident Analytics</div>',
+    unsafe_allow_html=True,
+)
+
+accident_by_road = (
+    filtered_df
+    .groupby("road_name", as_index=False)["accident_count"]
+    .sum()
+    .sort_values("accident_count", ascending=False)
+)
+
+col1, col2 = st.columns(2)
+
+with col1:
+
+    fig_acc = px.bar(
+        accident_by_road,
+        x="road_name",
+        y="accident_count",
+        text="accident_count",
+        color="accident_count",
+        color_continuous_scale="Reds",
+        labels={
+            "road_name": "Road",
+            "accident_count": "Accident Events",
+        },
+        title="Accident Events by Road",
+    )
+
+    fig_acc.update_traces(
+        textposition="outside",
+        marker_line_width=0,
+    )
+
+    fig_acc.update_coloraxes(showscale=False)
+
+    apply_chart_style(fig_acc, height=380)
+
+    st.plotly_chart(fig_acc, use_container_width=True)
+
+
+with col2:
+
+    accident_trend = (
+        filtered_df
+        .groupby("window_start", as_index=False)
+        ["accident_count"]
+        .sum()
+        .sort_values("window_start")
+    )
+
+    fig_acc_trend = px.line(
+        accident_trend,
+        x="window_start",
+        y="accident_count",
+        markers=True,
+        labels={
+            "window_start": "Time",
+            "accident_count": "Accident Events",
+        },
+        title="Accident Trend",
+    )
+
+    fig_acc_trend.update_traces(
+        line=dict(color="#fbbf24", width=2.5),
+        marker=dict(color="#fbbf24", size=7),
+    )
+
+    apply_chart_style(fig_acc_trend, height=380)
+
+    st.plotly_chart(fig_acc_trend, use_container_width=True)
+
+
+# ============================================================
+# TRAFFIC MAP
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">🗺️ Traffic &amp; Accident Map</div>',
+    unsafe_allow_html=True,
+)
+
+road_coordinates = pd.DataFrame(
+    {
+        "road_name": [
+            "Central Avenue",
+            "Market Road",
+            "Airport Road",
+            "River Bridge",
+            "Highway Junction",
+        ],
+        "latitude": [
+            16.5062,
+            16.5100,
+            16.5300,
+            16.5200,
+            16.4700,
+        ],
+        "longitude": [
+            80.6480,
+            80.6300,
+            80.8000,
+            80.6100,
+            80.7000,
+        ],
+    }
+)
+
+map_df = latest_df.merge(
+    road_coordinates,
+    on="road_name",
+    how="left",
+)
+
+if not map_df.empty:
+
+    fig_map = px.scatter_map(
+        map_df,
+        lat="latitude",
+        lon="longitude",
+        color="congestion_percentage",
+        size="total_vehicles",
+        hover_name="road_name",
+        hover_data={
+            "avg_speed_kmh": ":.2f",
+            "congestion_percentage": ":.2f",
+            "total_vehicles": True,
+            "accident_count": True,
+            "latitude": False,
+            "longitude": False,
+        },
+        color_continuous_scale="Turbo",
+        zoom=11,
+        height=550,
+        labels={
+            "avg_speed_kmh": "Avg Speed",
+            "congestion_percentage": "Congestion %",
+            "total_vehicles": "Vehicles",
+            "accident_count": "Accidents",
+        },
+    )
+
+    fig_map.update_layout(
+        paper_bgcolor="#06091a",
+        plot_bgcolor="#06091a",
+        margin=dict(l=0, r=0, t=0, b=0),
+    )
+
+    st.plotly_chart(fig_map, use_container_width=True)
+
+
+# ============================================================
+# DATASET SUMMARY
+# ============================================================
+
+st.markdown(
+    '<div class="section-title">📋 Dataset Summary</div>',
+    unsafe_allow_html=True,
+)
+
+s1, s2, s3, s4 = st.columns(4)
+
+with s1:
+    st.metric(
+        "Processed Records",
+        f"{processed_records:,}",
+    )
+
+with s2:
+    st.metric(
+        "Roads Monitored",
+        roads_monitored,
+    )
+
+with s3:
+    st.metric(
+        "Total Accident Events",
+        f"{total_accident_events:,}",
+    )
+
+with s4:
+    st.metric(
+        "Latest Window",
+        latest_window.strftime("%H:%M:%S"),
+    )
+
+
+# ============================================================
+# FOOTER
+# ============================================================
+
+st.markdown(
+    """
+    <div class="footer">
+        Real-Time Traffic Congestion &amp; Accident Analytics &nbsp;·&nbsp; Big Data Analytics Project
+        <br>
+        <span class="tech-tag">Python</span>
+        <span class="tech-tag">Kafka</span>
+        <span class="tech-tag">Spark Structured Streaming</span>
+        <span class="tech-tag">Parquet</span>
+        <span class="tech-tag">Streamlit</span>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+
+# ============================================================
+# AUTO REFRESH
+# ============================================================
+
+if auto_refresh:
+    time.sleep(refresh_seconds)
+    st.rerun()

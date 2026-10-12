@@ -1,0 +1,30 @@
+{
+  "dataset": "PEMS-BAY",
+  "description": "Bounded reservoir sample from official train/validation/test TsFiles. Metrics apply to this sample and are not a full-dataset benchmark.",
+  "feature_columns": [
+    "x_t_minus_11_d0",
+    "x_t_minus_10_d0",
+    "x_t_minus_9_d0",
+    "x_t_minus_8_d0",
+    "x_t_minus_7_d0",
+    "x_t_minus_6_d0",
+    "x_t_minus_5_d0",
+    "x_t_minus_4_d0",
+    "x_t_minus_3_d0",
+    "x_t_minus_2_d0",
+    "x_t_minus_1_d0",
+    "x_t_plus_0_d0"
+  ],
+  "target_columns": {
+    "5_min": "y_t_plus_1_d0",
+    "15_min": "y_t_plus_3_d0",
+    "60_min": "y_t_plus_12_d0"
+  },
+  "max_rows_per_split": 150000,
+  "random_seed": 42,
+  "sample_sensor_counts": {
+    "train": 325,
+    "validation": 325,
+    "test": 325
+  }
+}

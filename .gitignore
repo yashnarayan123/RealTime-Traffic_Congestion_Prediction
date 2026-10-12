@@ -1,0 +1,12 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.streamlit/
+logs/
+*.log
+data/processed/traffic_summary/
+data/checkpoints/
+data/raw/pems_bay_prediction_test.csv
+tmp/
+.DS_Store
